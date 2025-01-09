@@ -1,0 +1,43 @@
+-- 1) Felhasználó létrehozása
+-- Megjegyzés: a password oszlopba itt egy bcrypt-hash került (a "password" jelszó hash-e),
+-- de a valóságban regisztrációnál a jelszó a UserService-ben kerül kódolásra. 
+-- A "role" mezőnél ROLE_USER került beállításra.
+INSERT INTO users 
+    (id, username, password, email, billing_address, shipping_address, only_prepaid, role)
+VALUES 
+    (1, 'testuser', '$2a$10$7vPtBE7SI5p/MKFF89w1euYAMNjIIOmjKzR6K9l/VR4oaQV0PaSR.', '[email protected]',
+     'Budapest, Fő utca 1.', 'Budapest, Fő utca 1.', FALSE, 'ROLE_USER');
+
+-- 2) Kategóriák létrehozása
+INSERT INTO category (id, name) VALUES (1, 'AMD');
+INSERT INTO category (id, name) VALUES (2, 'INTEL');
+
+-- 3) Termékek létrehozása
+INSERT INTO product (id, name, description, price, weight, category_id)
+VALUES 
+    (1, 'AMD Ryzen 5 CPU', '6 mag, 12 szál', 65000, 0.2, 1),
+    (2, 'Intel Core i5 CPU', '6 mag, 12 szál', 70000, 0.25, 2);
+
+-- 4) Rendelés létrehozása (orders tábla)
+-- payment_method, shipping_method enum-oszlopokban pl.: CREDIT_CARD, GLS
+-- status: "Új" vagy bármilyen kezdő állapot
+-- order_date formátum pl. 'YYYY-MM-DD HH:MI:SS'
+INSERT INTO orders
+   (id, user_id, payment_method, shipping_method, shipping_cost, status, order_date)
+VALUES 
+   (1, 1, 'CREDIT_CARD', 'GLS', 1000, 'Új', '2025-01-01 10:00:00');
+
+-- 5) Rendelési tételek létrehozása (order_item tábla)
+-- A quantity és unit_price a rendeléskori állapotot tükrözi
+INSERT INTO order_item
+    (id, product_id, quantity, unit_price)
+VALUES
+    (1, 1, 2, 65000);
+
+-- 6) A rendelés és a rendelési tételek összerendelése
+-- @OneToMany(cascade = CascadeType.ALL) -> JPA valószínűleg létrehoz egy join táblát
+-- Alapértelmezett elnevezés (Spring/Hibernate naming strategy) lehet "orders_order_item",
+-- "order_items" vagy hasonló. A pontos név a JPA naming strategy-től függ.
+-- Tegyük fel, hogy "orders_order_item" néven jött létre, "orders_id" és "items_id" oszlopokkal:
+INSERT INTO orders_order_item (orders_id, items_id) VALUES (1, 1);
+
